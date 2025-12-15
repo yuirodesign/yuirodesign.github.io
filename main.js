@@ -211,10 +211,19 @@ window.addEventListener('scroll', () => {
 
 // 7. WORKSナビ
 document.addEventListener("DOMContentLoaded", () => {
-    const menuLinks = document.querySelectorAll(".left-fixed-menu a");
+
+    // ★ 左メニュー（PC）
+    const leftMenuLinks = document.querySelectorAll(".left-fixed-menu a");
+
+    // ★ 上メニュー（スマホ/タブレット）
+    const topMenuLinks = document.querySelectorAll(".top-menu-responsive a");
+
+    // 両方まとめて扱えるようにする
+    const allMenuLinks = [...leftMenuLinks, ...topMenuLinks];
+
     const sections = [];
 
-    menuLinks.forEach(link => {
+    allMenuLinks.forEach(link => {
         const id = link.dataset.target;
         const section = document.getElementById(id);
         if (section) {
@@ -237,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        menuLinks.forEach(link => {
+        allMenuLinks.forEach(link => {
             link.classList.remove("active");
             if (link.dataset.target === current) {
                 link.classList.add("active");
@@ -263,54 +272,64 @@ document.addEventListener("DOMContentLoaded", () => {
     items.forEach(item => observer.observe(item));
 });
 
-// 9. お問い合わせで左ナビをフェードアウト
+// 9. お問い合わせでナビをフェードアウト（PC + スマホ）
 document.addEventListener("DOMContentLoaded", () => {
-    const leftMenu = document.querySelector(".left-fixed-menu");
+    const leftMenu = document.querySelector(".left-fixed-menu");          // PC用
+    const topMenu  = document.querySelector(".top-menu-responsive");      // スマホ用
     const contactSection = document.getElementById("contact");
 
-    if (!leftMenu || !contactSection) return;
+    if (!contactSection) return;
 
-    function toggleLeftMenu() {
+    function toggleMenus() {
         const rect = contactSection.getBoundingClientRect();
+        const inContactArea = rect.top < window.innerHeight * 0.3;
 
-        if (rect.top < window.innerHeight * 0.3) {
-            // お問い合わせセクションが画面の下 30% に入ったら消す
-            leftMenu.classList.add("hide");
-        } else {
-            // 上に戻ったら表示
-            leftMenu.classList.remove("hide");
+        const windowWidth = window.innerWidth;
+
+        // --- PC（1000px 以上） ---
+        if (windowWidth > 1000) {
+            if (leftMenu) {
+                leftMenu.classList.toggle("hide", inContactArea);
+            }
+            if (topMenu) {
+                topMenu.classList.remove("hide"); // スマホ用は使わないので常に表示OFF
+            }
+        }
+
+        // --- スマホ/タブレット（1000px 以下） ---
+        else {
+            if (topMenu) {
+                topMenu.classList.toggle("hide", inContactArea);
+            }
+            if (leftMenu) {
+                leftMenu.classList.remove("hide"); // PC用メニューは非対象
+            }
         }
     }
 
-    // 初回チェック
-    toggleLeftMenu();
-
-    // スクロールでチェック
-    window.addEventListener("scroll", toggleLeftMenu);
-    window.addEventListener("resize", toggleLeftMenu); // リサイズ時も安定
+    toggleMenus();
+    window.addEventListener("scroll", toggleMenus);
+    window.addEventListener("resize", toggleMenus);
 });
 
 // 10. ハンバーガーメニュー
 document.addEventListener("DOMContentLoaded", function () {
 
-    // ▼ ハンバーガーメニュー
     const ham = document.querySelector(".hamburger");
     const nav = document.querySelector(".nav-wrapper");
 
+    // ハンバーガー開閉
     ham.addEventListener("click", () => {
         ham.classList.toggle("active");
         nav.classList.toggle("show");
     });
 
-    // ▼ スマホでのサブメニュー開閉
-    const hasSub = document.querySelector(".has-sub > a");
-    const parentLi = document.querySelector(".has-sub");
-
-    hasSub.addEventListener("click", (e) => {
-        if (window.innerWidth <= 768) {
-            e.preventDefault(); // ページ内リンクを止める
-            parentLi.classList.toggle("open");
-        }
+    // ▼ メニュー内リンクをクリックしたら閉じる
+    document.querySelectorAll('.nav-wrapper a').forEach(link => {
+        link.addEventListener('click', () => {
+            ham.classList.remove("active");
+            nav.classList.remove("show");
+        });
     });
 
 });
